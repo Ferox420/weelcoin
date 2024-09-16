@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wheel of Fortune</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      background-color: #6e0f0f;
+      overflow: hidden;
+    }
+
+    .banner {
+      width: 100%;
+      height: 100px;
+      background-color: #1C0303;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 100;
+    }
+
+    .banner img {
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    .footer-banner {
+      width: 100%;
+      height: 90px;
+      background-color: #000000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      z-index: 100;
+    }
+
+    .footer-btn {
+      background: none;
+      color: white;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 0 30px;
+      margin: 0;
+      transition: color 0.3s;
+    }
+
+    .footer-btn:hover {
+      color: #ccc;
+    }
+
+    .wheel-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80vw;
+      height: 80vw;
+      max-width: 400px;
+      max-height: 400px;
+    }
+
+    .spin-btn {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 20vw;
+      height: 20vw;
+      max-width: 100px;
+      max-height: 100px;
+      border-radius: 50%;
+      background-color: #444444; /* Темно-серый цвет кнопки */
+      color: white;
+      border: none;
+      font-size: 4vw;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: background-color 0.3s;
+    }
+
+    .spin-btn:hover {
+      background-color: #666666; /* Светлее при наведении */
+    }
+
+    canvas {
+      border-radius: 50%;
+      width: 100%;
+      height: 100%;
+    }
+
+    .pointer {
+      position: absolute;
+      top: -15%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 10vw;
+      max-width: 40px;
+      height: auto;
+      z-index: 10;
+    }
+
+    .score-container {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      font-size: 20px;
+      font-weight: bold;
+      color: white;
+      z-index: 100;
+    }
+
+    @media (max-width: 375px) {
+      .footer-banner {
+        height: 40px;
+      }
+
+      .footer-btn {
+        font-size: 18px;
+        padding: 0 25px;
+      }
+
+      .spin-btn {
+        font-size: 5vw;
+      }
+
+      .pointer {
+        width: 15vw;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="banner">
+    <img src="banner.png" alt="Banner">
+  </div>
+
+  <div class="wheel-container">
+    <canvas id="wheel" width="400" height="400"></canvas>
+    <button id="spin" class="spin-btn">Spin</button>
+    <img src="pointer.png" class="pointer" alt="Pointer">
+  </div>
+
+  <div class="score-container">
+    <span id="score">0</span>
+  </div>
+
+  <div class="footer-banner">
+    <button class="footer-btn">WHEEL</button>
+    <button class="footer-btn">TASK</button>
+    <button class="footer-btn">WALLET</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("wheel");
+    const ctx = canvas.getContext("2d");
+    const spinBtn = document.getElementById("spin");
+    const scoreDisplay = document.getElementById("score");
+
+    const sectors = 16;
+    const sectorAngle = 360 / sectors;
+    const radius = canvas.width / 2;
+    
+    let currentAngle = 0;
+    let spinning = false;
+    let score = parseInt(localStorage.getItem('wheelScore')) || 0;
+
+    const wheelImage = new Image();
+    wheelImage.src = 'wheel.png';
+    wheelImage.onload = () => {
+      drawWheel();
+    };
+
+    function drawWheel() {
+      if (!wheelImage.complete || wheelImage.naturalWidth === 0) {
+        console.error("Wheel image failed to load.");
+        return;
+      }
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.save();
+      ctx.translate(radius, radius);
+      ctx.rotate((currentAngle * Math.PI) / 180);
+      ctx.translate(-radius, -radius);
+      ctx.drawImage(wheelImage, 0, 0, canvas.width, canvas.height);
+      ctx.restore();
+    }
+
+    function calculateScore(winningSector) {
+      const scoreMap = {
+        1: 10, 3: 10, 5: 10, 7: 10, 9: 10, 11: 10, 13: 10, 15: 10,
+        14: 100, 2: 100, 10: 100, 6: 100,
+        4: 500, 12: 500,
+        16: 50, 8: 50
+      };
+
+      return scoreMap[winningSector] || 0;
+    }
+
+    function updateScore(points) {
+      try {
+        score += points;
+        scoreDisplay.textContent = score;
+        localStorage.setItem('wheelScore', score);
+      } catch (e) {
+        console.error("Local Storage is not available or quota exceeded.");
+      }
+    }
+
+    function spinWheel() {
+      if (spinning) return;
+
+      // Вибрация при нажатии
+      if (navigator.vibrate) {
+        navigator.vibrate(200); // Вибрация на 200 миллисекунд
+      }
+
+      spinning = true;
+
+      const winningSector = Math.floor(Math.random() * sectors);
+      const spinDuration = 6000; // Увеличиваем продолжительность вращения (6 секунд)
+      const spins = Math.floor(Math.random() * 8) + 1; // Уменьшаем количество полных оборотов для более плавного вращения
+      const targetAngle = (360 * spins) + (sectorAngle * winningSector) - (sectorAngle / 2);
+      const startTime = Date.now();
+
+      function animate() {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / spinDuration, 1);
+        const easeOutQuad = 1 - Math.pow(1 - progress, 4); // Изменяем функцию замедления для более плавного окончания
+
+        currentAngle = targetAngle * easeOutQuad;
+        drawWheel();
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          spinning = false;
+          const normalizedAngle = (currentAngle % 360 + 360) % 360;
+          const topSectorAngle = (normalizedAngle + 90) % 360;
+          const winningSectorCalculated = Math.floor(((360 - topSectorAngle) % 360) / sectorAngle) % sectors + 1;
+
+          const points = calculateScore(winningSectorCalculated);
+          updateScore(points);
+        }
+      }
+
+      animate();
+    }
+
+    spinBtn.addEventListener("click", spinWheel);
+
+    scoreDisplay.textContent = score;
+  </script>
+</body>
+</html>
