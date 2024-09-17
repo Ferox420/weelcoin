@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wheel of Fortune</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(to bottom, #6e0f0f, #000000);
+      overflow: hidden;
+    }
+
+    .banner {
+      width: 100%;
+      height: 60px;
+      background-color: #000000;
+      display: flex;
+      align-items: center;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 100;
+      justify-content: center;
+      padding-right: 20px;
+      box-sizing: border-box;
+    }
+
+    .banner img {
+      max-width: 30%;
+      max-height: 30px;
+    }
+
+    .footer-banner {
+      width: 100%;
+      height: 120px;
+      background-color: #000000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      z-index: 100;
+      padding: 0 10px;
+      box-sizing: border-box;
+    }
+
+    .footer-btn {
+      background: none;
+      color: white;
+      border: none;
+      font-size: 14px;
+      cursor: pointer;
+      padding: 0 40px;
+      margin: 0;
+      transition: color 0.3s;
+    }
+
+    .footer-btn:hover {
+      color: #ccc;
+    }
+
+    .score-container {
+      font-size: 20px;
+      font-weight: bold;
+      color: white;
+      display: flex;
+      align-items: center;
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 200;
+    }
+
+    .attempts-container {
+      font-size: 20px;
+      font-weight: bold;
+      color: white;
+      display: flex;
+      align-items: center;
+      position: absolute;
+      left: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 200;
+    }
+
+    .attempts-container span {
+      margin-right: 5px;
+    }
+
+    .score-container img {
+      width: 20px;
+      height: auto;
+      margin-left: 5px;
+    }
+
+    .wheel-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80vw;
+      height: 80vw;
+      max-width: 400px;
+      max-height: 400px;
+    }
+
+    .spin-btn {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 20vw;
+      height: 20vw;
+      max-width: 100px;
+      max-height: 100px;
+      border-radius: 50%;
+      background-color: #444444;
+      color: white;
+      border: none;
+      font-size: 4vw;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: background-color 0.3s;
+    }
+
+    .spin-btn:hover {
+      background-color: #666666;
+    }
+
+    canvas {
+      border-radius: 50%;
+      width: 100%;
+      height: 100%;
+    }
+
+    .pointer {
+      position: absolute;
+      top: -7%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 5vw;
+      max-width: 20px;
+      height: auto;
+      z-index: 10;
+    }
+
+    @media (max-width: 375px) {
+      .footer-banner {
+        height: 40px;
+      }
+
+      .footer-btn {
+        font-size: 18px;
+        padding: 0 25px;
+      }
+
+      .spin-btn {
+        font-size: 5vw;
+      }
+
+      .pointer {
+        width: 15vw;
+      }
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    #task-section, #wallet-section, #main-content {
+      background: transparent;
+      height: 100%;
+      width: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      overflow: auto;
+    }
+
+    #task-section h1, #wallet-section h1 {
+      color: white;
+      text-align: center;
+      margin-top: 120px;
+    }
+
+    #task-section p, #wallet-section p {
+      color: white;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <!-- Main Content -->
+  <div id="main-content">
+    <div class="banner">
+      <img src="banner.png" alt="Banner">
+      <div class="attempts-container">
+        <span id="attempts">5</span>spins
+      </div>
+      <div class="score-container">
+        <span id="score">0</span>
+        <img src="coin.png" alt="Coin">
+      </div>
+    </div>
+
+    <div class="wheel-container">
+      <canvas id="wheel" width="400" height="400"></canvas>
+      <button id="spin" class="spin-btn">Spin</button>
+      <img src="pointer.png" class="pointer" alt="Pointer">
+    </div>
+
+    <div class="footer-banner">
+      <button class="footer-btn" onclick="showSection('main-content')">WHEEL</button>
+      <button class="footer-btn" onclick="showSection('task-section')">TASK</button>
+      <button class="footer-btn" onclick="showSection('wallet-section')">WALLET</button>
+    </div>
+  </div>
+
+  <!-- Task Section -->
+  <div id="task-section" class="hidden">
+    <div class="banner">
+      <img src="banner.png" alt="Banner">
+      <div class="attempts-container">
+        <span id="attempts-task">5</span>spins
+      </div>
+      <div class="score-container">
+        <span id="score-task">0</span>
+        <img src="coin.png" alt="Coin">
+      </div>
+    </div>
+    <h1>Task Section</h1>
+    <p>This is where you can add the content for the TASK section.</p>
+    
+    <div class="footer-banner">
+      <button class="footer-btn" onclick="showSection('main-content')">WHEEL</button>
+      <button class="footer-btn" onclick="showSection('task-section')">TASK</button>
+      <button class="footer-btn" onclick="showSection('wallet-section')">WALLET</button>
+    </div>
+  </div>
+
+  <!-- Wallet Section -->
+  <div id="wallet-section" class="hidden">
+    <div class="banner">
+      <img src="banner.png" alt="Banner">
+      <div class="attempts-container">
+        <span id="attempts-wallet">5</span>spins
+      </div>
+      <div class="score-container">
+        <span id="score-wallet">0</span>
+        <img src="coin.png" alt="Coin">
+      </div>
+    </div>
+    <h1>Wallet Section</h1>
+    <p>This is where you can add the content for the WALLET section.</p>
+    
+    <div class="footer-banner">
+      <button class="footer-btn" onclick="showSection('main-content')">WHEEL</button>
+      <button class="footer-btn" onclick="showSection('task-section')">TASK</button>
+      <button class="footer-btn" onclick="showSection('wallet-section')">WALLET</button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("wheel");
+    const ctx = canvas.getContext("2d");
+    const spinBtn = document.getElementById("spin");
+    const scoreDisplay = document.getElementById("score");
+    const scoreTaskDisplay = document.getElementById("score-task");
+    const scoreWalletDisplay = document.getElementById("score-wallet");
+    const attemptsDisplay = document.getElementById("attempts");
+    const attemptsTaskDisplay = document.getElementById("attempts-task");
+    const attemptsWalletDisplay = document.getElementById("attempts-wallet");
+
+    const sectors = 16;
+    const sectorAngle = 360 / sectors;
+    const radius = canvas.width / 2;
+    
+    let currentAngle = 0;
+    let spinning = false;
+    let score = parseInt(localStorage.getItem('wheelScore')) || 0;
+    let attempts = parseInt(localStorage.getItem('attempts')) || 5;
+    let lastSpinTime = parseInt(localStorage.getItem('lastSpinTime')) || null;
+
+    const maxAttempts = 5;
+    const attemptRecoveryTime = 1.5 * 60 * 60 * 1000; // 1.5 часа в миллисекундах
+
+    // Отображение текущего счета
+    function updateScoreDisplay() {
+      scoreDisplay.textContent = score;
+      scoreTaskDisplay.textContent = score;
+      scoreWalletDisplay.textContent = score;
+    }
+
+    // Отображение изображения колеса
+    const wheelImage = new Image();
+    wheelImage.src = "wheel.png"; // Замените на свой путь к изображению колеса
+
+    wheelImage.onload = function() {
+      ctx.drawImage(wheelImage, 0, 0, canvas.width, canvas.height);
+    };
+
+    // Функция для обновления отображения количества попыток
+    function updateAttemptsDisplay() {
+      attemptsDisplay.textContent = attempts;
+      attemptsTaskDisplay.textContent = attempts;
+      attemptsWalletDisplay.textContent = attempts;
+    }
+
+    // Функция для вращения колеса
+    function spinWheel() {
+      if (spinning) return;
+      spinning = true;
+      let spinAngle = Math.random() * 360 + 1440; // Вращаем минимум 4 оборота
+      let currentTime = new Date().getTime();
+      const duration = 4000; // Длительность анимации вращения (в миллисекундах)
+
+      const startAngle = currentAngle;
+      const endAngle = startAngle + spinAngle;
+      const startTime = currentTime;
+
+      function animateSpin() {
+        currentTime = new Date().getTime();
+        let elapsedTime = currentTime - startTime;
+        let t = elapsedTime / duration; // Нормализируем время для анимации (от 0 до 1)
+        if (t > 1) t = 1;
+
+        currentAngle = startAngle + (endAngle - startAngle) * easeOutQuad(t);
+        drawWheel(currentAngle);
+
+        if (t < 1) {
+          requestAnimationFrame(animateSpin);
+        } else {
+          spinning = false;
+          const finalSector = Math.floor((currentAngle % 360) / sectorAngle);
+          score += finalSector + 1;
+          updateScoreDisplay();
+          localStorage.setItem('wheelScore', score);
+        }
+      }
+
+      animateSpin();
+    }
+
+    // Функция отрисовки колеса
+    function drawWheel(angle) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.save();
+      ctx.translate(radius, radius);
+      ctx.rotate((angle * Math.PI) / 180);
+      ctx.drawImage(wheelImage, -radius, -radius, canvas.width, canvas.height);
+      ctx.restore();
+    }
+
+    // Функция ease-out для плавного завершения анимации
+    function easeOutQuad(t) {
+      return t * (2 - t);
+    }
+
+    // Обработка клика по кнопке "Spin"
+    spinBtn.addEventListener("click", function() {
+      if (attempts > 0 && !spinning) {
+        attempts--;
+        lastSpinTime = new Date().getTime();
+        localStorage.setItem('attempts', attempts);
+        localStorage.setItem('lastSpinTime', lastSpinTime);
+        updateAttemptsDisplay();
+        spinWheel();
+      } else {
+        alert("У вас нет попыток! Подождите восстановления.");
+      }
+    });
+
+    // Проверка и добавление попытки через каждые 1.5 часа
+    function recoverAttempts() {
+      if (lastSpinTime) {
+        const currentTime = new Date().getTime();
+        const elapsedTime = currentTime - lastSpinTime;
+
+        // Рассчитываем, сколько попыток нужно восстановить
+        const attemptsToRecover = Math.floor(elapsedTime / attemptRecoveryTime);
+        if (attemptsToRecover > 0) {
+          attempts = Math.min(attempts + attemptsToRecover, maxAttempts);
+          lastSpinTime = currentTime;
+          updateAttemptsDisplay();
+        }
+      }
+    }
+
+    // Восстанавливаем попытки каждые 1.5 часа
+    setInterval(recoverAttempts, 1000 * 60); // Проверяем раз в минуту
+
+    // Инициализация попыток на старте
+    function initializeAttempts() {
+      const savedAttempts = localStorage.getItem('attempts');
+      const savedLastSpinTime = localStorage.getItem('lastSpinTime');
+      
+      if (savedAttempts && savedLastSpinTime) {
+        attempts = parseInt(savedAttempts);
+        lastSpinTime = parseInt(savedLastSpinTime);
+        recoverAttempts();
+      } else {
+        attempts = maxAttempts;
+        lastSpinTime = null;
+      }
+
+      updateAttemptsDisplay();
+    }
+
+    // Сохранение попыток в localStorage
+    function saveAttempts() {
+      localStorage.setItem('attempts', attempts);
+      localStorage.setItem('lastSpinTime', lastSpinTime);
+    }
+
+    // Показать нужную секцию
+    function showSection(sectionId) {
+      document.getElementById('main-content').classList.add('hidden');
+      document.getElementById('task-section').classList.add('hidden');
+      document.getElementById('wallet-section').classList.add('hidden');
+      document.getElementById(sectionId).classList.remove('hidden');
+    }
+
+    // Инициализация
+    initializeAttempts();
+  </script>
+</body>
+</html>
