@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wheel of Fortune</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(to bottom, #6e0f0f, #000000);
+      overflow: hidden;
+    }
+
+    .banner {
+      width: 100%;
+      height: 60px;
+      background-color: #000000;
+      display: flex;
+      align-items: center;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 100;
+      justify-content: center;
+      padding: 0 20px;
+      box-sizing: border-box;
+    }
+
+    .banner img {
+      max-width: 30%;
+      max-height: 30px;
+      margin: 0 auto;
+    }
+
+    .score-container {
+      font-size: 20px;
+      font-weight: bold;
+      color: white;
+      display: flex;
+      align-items: center;
+      margin-left: auto;
+    }
+
+    .score-container img {
+      width: 20px;
+      height: auto;
+      margin-left: 5px;
+    }
+
+    .attempts-container {
+      font-size: 20px;
+      font-weight: bold;
+      color: white;
+      display: flex;
+      align-items: center;
+      margin-right: auto;
+    }
+
+    .attempts-container span {
+      margin-left: 5px;
+    }
+
+    .footer-banner {
+      width: 100%;
+      height: 80px;
+      background-color: #000000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      z-index: 100;
+      padding: 0 10px;
+      box-sizing: border-box;
+    }
+
+    .footer-btn {
+      background: none;
+      color: white;
+      border: none;
+      font-size: 14px;
+      cursor: pointer;
+      padding: 0 30px;
+      margin: 0;
+      transition: color 0.3s;
+      line-height: 1.5;
+    }
+
+    .footer-btn:hover {
+      color: #ccc;
+    }
+
+    .wheel-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80vw;
+      height: 80vw;
+      max-width: 400px;
+      max-height: 400px;
+    }
+
+    .spin-btn {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 20vw;
+      height: 20vw;
+      max-width: 100px;
+      max-height: 100px;
+      border-radius: 50%;
+      background-color: #444444;
+      color: white;
+      border: none;
+      font-size: 4vw;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: background-color 0.3s;
+    }
+
+    .spin-btn:hover {
+      background-color: #666666;
+    }
+
+    canvas {
+      border-radius: 50%;
+      width: 100%;
+      height: 100%;
+    }
+
+    .pointer {
+      position: absolute;
+      top: -7%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 5vw;
+      max-width: 20px;
+      height: auto;
+      z-index: 10;
+    }
+
+    @media (max-width: 375px) {
+      .footer-banner {
+        height: 40px;
+      }
+
+      .footer-btn {
+        font-size: 18px;
+        padding: 0 25px;
+      }
+
+      .spin-btn {
+        font-size: 5vw;
+      }
+
+      .pointer {
+        width: 15vw;
+      }
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    #main-content {
+      background: transparent;
+      height: 100%;
+      width: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      overflow: auto;
+    }
+
+    #countdown {
+      position: absolute;
+      top: 0%;
+      left: 0%;
+      transform: translateX(-50%);
+      font-size: 24px;
+      color: white;
+      text-align: center;
+      z-index: 20;
+    }
+  </style>
+</head>
+<body>
+  <!-- Main Content -->
+  <div id="main-content">
+    <div class="banner">
+      <div class="attempts-container">
+        <span id="attempts">5</span>
+        <span>Spins</span>
+      </div>
+      <img src="banner.png" alt="Banner">
+      <div class="score-container">
+        <span id="score">0</span>
+        <img src="coin.png" alt="Coin">
+      </div>
+    </div>
+
+    <div class="wheel-container">
+      <canvas id="wheel" width="400" height="400"></canvas>
+      <button id="spin" class="spin-btn">Spin</button>
+      <img src="pointer.png" class="pointer" alt="Pointer">
+      <div id="countdown" class="hidden"></div>
+    </div>
+
+    <div class="footer-banner">
+      <button class="footer-btn" onclick="showSection('main-content')">WHEEL</button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("wheel");
+    const ctx = canvas.getContext("2d");
+    const spinBtn = document.getElementById("spin");
+    const scoreDisplay = document.getElementById("score");
+    const attemptsDisplay = document.getElementById("attempts");
+    const countdownDisplay = document.getElementById("countdown");
+
+    const sectors = 16;
+    const sectorAngle = 360 / sectors;
+    const radius = canvas.width / 2;
+
+    let currentAngle = 0;
+    let spinning = false;
+    let score = parseInt(localStorage.getItem('wheelScore')) || 0;
+    let attempts = parseInt(localStorage.getItem('attempts')) || 0;
+    let nextSpinTime = parseInt(localStorage.getItem('nextSpinTime')) || 0;
+
+    // On first visit, give the user 5 spins
+    if (!localStorage.getItem('firstVisit')) {
+      attempts = 5;
+      localStorage.setItem('attempts', attempts);
+      localStorage.setItem('firstVisit', 'true');
+    }
+
+    const wheelImage = new Image();
+    wheelImage.src = 'wheel.png';
+    wheelImage.onload = () => {
+      drawWheel();
+    };
+
+    function drawWheel() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.save();
+      ctx.translate(radius, radius);
+      ctx.rotate((currentAngle * Math.PI) / 180);
+      ctx.translate(-radius, -radius);
+      ctx.drawImage(wheelImage, 0, 0, canvas.width, canvas.height);
+      ctx.restore();
+    }
+
+    function calculateScore(winningSector) {
+      const scoreMap = {
+        1: 10, 3: 10, 5: 10, 7: 10, 9: 10, 11: 10, 13: 10, 15: 10,
+        14: 100, 2: 100, 10: 100, 6: 100,
+        4: 500, 12: 500,
+        16: 50, 8: 50
+      };
+      return scoreMap[winningSector] || 0;
+    }
+
+    function updateScore(points) {
+      score += points;
+      localStorage.setItem('wheelScore', score);
+      updateDisplays();
+    }
+
+    function updateDisplays() {
+      score = parseInt(localStorage.getItem('wheelScore')) || 0;
+      attempts = parseInt(localStorage.getItem('attempts')) || 0;
+      scoreDisplay.textContent = score;
+      attemptsDisplay.textContent = attempts;
+    }
+
+    // Function to update the countdown timer
+    function updateCountdownTimer() {
+      const now = new Date().getTime();
+      nextSpinTime = parseInt(localStorage.getItem('nextSpinTime')) || 0;
+
+      if (attempts >= 5 || now < nextSpinTime) {
+        countdownDisplay.classList.add('hidden');
+        return;
+      }
+
+      const timeRemaining = nextSpinTime - now;
+      if (timeRemaining > 0) {
+        const hours = Math.floor((timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
+
+        countdownDisplay.textContent = `${hours}h ${minutes}m ${seconds}s`;
+        countdownDisplay.classList.remove('hidden');
+      } else {
+        countdownDisplay.classList.add('hidden');
+        // Restore a spin if the time has passed
+        if (attempts < 5) {
+          attempts += 1;
+          localStorage.setItem('attempts', attempts);
+          localStorage.removeItem('nextSpinTime'); // Remove next spin time after it expires
+          updateDisplays();
+        }
+      }
+    }
+
+    // Function to handle spinning the wheel
+    function spinWheel() {
+      if (spinning || attempts <= 0) {
+        if (attempts <= 0) {
+          const now = new Date().getTime();
+          if (!nextSpinTime) {
+            const newNextSpinTime = now + 90 * 60 * 1000; // 1.5 hours in milliseconds
+            localStorage.setItem('nextSpinTime', newNextSpinTime);
+            nextSpinTime = newNextSpinTime;
+          }
+        }
+        updateCountdownTimer(); // Keep updating the countdown if the user clicks spin with 0 attempts
+        return;
+      }
+
+      if (navigator.vibrate) {
+        navigator.vibrate(200);
+      }
+
+      spinning = true;
+      attempts -= 1; // Decrease attempts
+      localStorage.setItem('attempts', attempts); // Update localStorage with new attempts value
+      updateDisplays();
+
+      const winningSector = Math.floor(Math.random() * sectors);
+      const spinDuration = 6000;
+      const spins = Math.floor(Math.random() * 8) + 1;
+      const targetAngle = (360 * spins) + (sectorAngle * winningSector) - (sectorAngle / 2);
+      const startTime = Date.now();
+
+      function animate() {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / spinDuration, 1);
+        const easeOutQuad = 1 - Math.pow(1 - progress, 4);
+
+        currentAngle = targetAngle * easeOutQuad;
+        drawWheel();
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          spinning = false;
+          const normalizedAngle = (currentAngle % 360 + 360) % 360;
+          const topSectorAngle = (normalizedAngle + 90) % 360;
+          const winningSectorCalculated = Math.floor(((360 - topSectorAngle) % 360) / sectorAngle) % sectors + 1;
+
+          const points = calculateScore(winningSectorCalculated);
+          updateScore(points);
+        }
+      }
+
+      animate();
+    }
+
+    // Update the countdown timer every second
+    setInterval(updateCountdownTimer, 1000);
+
+    updateDisplays(); // Set initial values
+    updateCountdownTimer(); // Set initial countdown display
+
+    spinBtn.addEventListener("click", spinWheel);
+  </script>
+</body>
+</html>
