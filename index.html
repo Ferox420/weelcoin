@@ -485,7 +485,7 @@
     .image {
       width: 50px;
       height: 50px;
-      background-image: url('x2.png'); /* Replace with actual image */
+      background-image: url('img/x2.png'); /* Replace with actual image */
       background-size: cover;
       border-radius: 10px;
       margin-right: 10px;
@@ -532,7 +532,7 @@
       width: 15px;
       height: 15px;
       margin-left: 5px;
-      background-image: url('coin.png'); /* Replace with actual coin image */
+      background-image: url('img/coin.png'); /* Replace with actual coin image */
       background-size: cover;
     }
 	
@@ -559,7 +559,7 @@
     .image2 {
       width: 50px;
       height: 50px;
-      background-image: url('x2time.png'); /* Replace with actual image */
+      background-image: url('img/x2time.png'); /* Replace with actual image */
       background-size: cover;
       border-radius: 10px;
       margin-right: 10px;
@@ -627,20 +627,20 @@
 }
 
 .task-image {
-  width: 400px;
-  height: 60px;
+  width: 350px;
+  height: 55px;
   border-radius: 0%;
   display: block;
 }
 
 .circles-overlay {
   position: absolute;
-  top: 3px; /* Position the circles slightly above the image */
+  top: 2.1px; /* Position the circles slightly above the image */
   left: 0px; /* Shift the circles to the left */
   width: 400px; /* Adjust width based on how far you want the circles spread */
   display: flex;
   justify-content: flex-start; /* Align circles to the left */
-  gap: 50.4px; /* Add space between circles */
+  gap: 43px; /* Add space between circles */
 }
 
 .green-circle {
@@ -661,12 +661,12 @@
   <div class="banner">
     <div class="attempts-container">
       <span id="attempts">5</span>
-      <img src="spin.png" alt="Spin Icon" id="spin-icon" />
+      <img src="img/spin.png" alt="Spin Icon" id="spin-icon" />
     </div>
 
     <div class="score-container">
       <span id="score">0</span>
-      <img src="coin.png" alt="Coin">
+      <img src="img/coin.png" alt="Coin">
     </div>
   </div>
 
@@ -676,7 +676,7 @@
     <div class="wheel-container">
       <canvas id="wheel" width="400" height="400"></canvas>
       <button id="spin" class="spin-btn">Spin</button>
-      <img src="pointer.png" class="pointer" alt="Pointer">
+      <img src="img/pointer.png" class="pointer" alt="Pointer">
     </div>
     <div class="box" id="code-cracker">
       <div class="squares">
@@ -697,7 +697,7 @@
   
 <div class="red-rectangle">
   <div class="image-container">
-    <img src="days.png" alt="Your Image" class="task-image">
+    <img src="img/days.png" alt="Your Image" class="task-image">
     <div class="circles-overlay">
       <div class="green-circle"></div>
       <div class="green-circle"></div>
@@ -723,7 +723,7 @@
       <p class="info-subtext">There you will find promo codes and code for every day</p>
       <div class="reward">
         <span class="reward-text">+1000</span>
-        <img src="coin.png" alt="Coin" class="coin-icon">
+        <img src="img/coin.png" alt="Coin" class="coin-icon">
       </div>
     </div>
   </div>
@@ -826,7 +826,7 @@ document.addEventListener('DOMContentLoaded', () => {
    
     // Draw the wheel
     const wheelImage = new Image();
-    wheelImage.src = 'wheel.png';
+    wheelImage.src = 'img/wheel.png';
     wheelImage.onload = () => {
       drawWheel();
     };
@@ -864,7 +864,7 @@ if (!localStorage.getItem('countdown')) {
     const squares = document.querySelectorAll('.square');
     squares.forEach(square => {
       square.dataset.symbol = 'circle'; // Default symbol
-      square.style.backgroundImage = 'url(circle.png)'; // Replace with appropriate image path
+      square.style.backgroundImage = 'url(img/circle.png)'; // Replace with appropriate image path
     });
 
      // Save the daily code in localStorage
@@ -1415,7 +1415,7 @@ function handleClaimClick() {
                             (currentSymbol === 'square' ? 'star' : 'circle'));
           square.dataset.symbol = newSymbol;
           // Update the background image to reflect the new symbol
-          square.style.backgroundImage = `url(${newSymbol}.png)`; // Replace with your actual image paths
+          square.style.backgroundImage = `url(img/${newSymbol}.png)`; // Replace with your actual image paths
         });
       });
 	
