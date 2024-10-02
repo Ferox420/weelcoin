@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Wheel of Fortune</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(to bottom, #6e0f0f, #000000);
+      overflow: hidden;
+    }
+
+    .banner {
+      width: 100%;
+      height: 60px;
+      background-color: #000000;
+      display: flex;
+      align-items: center;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 100;
+      justify-content: center;
+      padding: 0 20px;
+      box-sizing: border-box;
+    }
+
+    .banner img {
+      max-width: 30%;
+      max-height: 30px;
+      margin: 0 auto;
+    }
+
+    .score-container {
+      font-size: 20px;
+      font-weight: bold;
+      color: white;
+      display: flex;
+      align-items: center;
+      margin-left: auto;
+    }
+
+    .score-container img {
+      width: 20px;
+      height: auto;
+      margin-left: 5px;
+    }
+
+    .attempts-container {
+      font-size: 20px;
+      font-weight: bold;
+      color: white;
+      display: flex;
+      align-items: center;
+      margin-right: auto;
+    }
+
+    .attempts-container span {
+      margin-left: -5px;
+    }
+
+#attempts-wrapper {
+    display: flex;
+    flex-direction: column; /* Stack attempts and timer vertically */
+    align-items: center; /* Center-align the content */
+}
+
+
+ #next-spin-timer {
+    margin-left: -5px; /* Moves the timer a bit to the right */
+    color: gray; /* Changes the timer color to gray */
+    font-size: 16px; /* Optional size adjustment */
+}
+
+    .footer-banner {
+      width: 100%;
+      height: 80px;
+      background-color: #000000;
+      display: flex;
+      justify-content: space-around;  /* Равномерное распределение кнопок */
+      align-items: center;                   /*flex-start;        Выравнивание кнопок по верхней части баннера */  
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      z-index: 100;
+      padding: 0 10px;
+      box-sizing: border-box;
+      height: 80px;                   /* Высота баннера */
+    }
+
+    .footer-btn {
+      background: none;
+      color: white;
+      border: none;
+      font-size: 14px;
+      cursor: pointer;
+      padding: 0 30px;
+      margin: 0;
+      transition: color 0.3s;
+      line-height: 1.5;
+      margin-top: 10px;                /* Небольшой отступ сверху для кнопок */
+    }
+
+    .footer-btn:hover {
+      color: #ccc;
+    }
+
+    .wheel-container {
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80vw;
+      height: 80vw;
+      max-width: 400px;
+      max-height: 400px;
+    }
+
+    .spin-btn {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 20vw;
+      height: 20vw;
+      max-width: 100px;
+      max-height: 100px;
+      border-radius: 50%;
+      background-color: #444444;
+      color: white;
+      border: none;
+      font-size: 4vw;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: background-color 0.3s;
+    }
+
+    .spin-btn:hover {
+      background-color: #666666;
+    }
+
+    canvas {
+      border-radius: 50%;
+      width: 100%;
+      height: 100%;
+    }
+
+    .pointer {
+      position: absolute;
+      top: -7%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 5vw;
+      max-width: 20px;
+      height: auto;
+      z-index: 10;
+    }
+    .box {
+      background-color: #3A0000;
+      border-radius: 15px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      position: absolute;
+      bottom: 80px; /* Отступ от нижней части экрана */
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%; /* Адаптивная ширина для iPhone */
+      max-width: 400px; /* Максимальная ширина */
+    }
+    .squares {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .square {
+      width: 70px;
+      height: 70px;
+      background-color: white;
+      border-radius: 15px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      background-size: cover;
+      background-position: center;
+    }
+    .square.active {
+      transform: scale(1.2);
+    }
+	.square.disabled {
+      pointer-events: none;
+      opacity: 0.5; /* Визуально показываем, что элемент не активен */
+    }
+    .hints {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 10px;
+    }
+    .hint {
+      font-size: 14px;
+      text-align: center;
+      color: white;
+    }
+    .input-area {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .crack-button {
+      height: 60px;
+      width: 120px;
+      padding: 5px;
+      font-size: 20px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 20px;
+    }
+    .crack-button.success {
+      background-color: #6c757d; /* Gray color for success */
+      cursor: not-allowed; /* Indicate that the button is not clickable */
+    }
+    .crack-button.error {
+      background-color: #dc3545; /* Red color for error */
+    }
+    .crack-button:disabled {
+      opacity: 0.5; /* Slightly transparent to show it's disabled */
+    }
+    .message {
+      font-size: 19px;
+      color: white;
+      margin-top: 2px;
+      text-align: center;
+    }
+    .coin-container {
+      position: absolute;
+      bottom: 20px;
+      right: 30px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .coin {
+      width: 20px;
+      height: 20px;
+      background-size: cover;
+      background-position: center;
+    }
+    .amount {
+      font-size: 20px;
+      color: white;
+    }
+
+  @media (max-width: 375px) {
+    .footer-banner {
+      height: 70px; /* Меньшая высота на маленьких экранах */
+    }
+
+    .footer-btn {
+      font-size: 14px; /* Меньший шрифт для кнопок */
+      padding: 0 15px;
+    }
+
+    .spin-btn {
+      font-size: 5vw;
+    }
+
+    .pointer {
+      width: 15vw;
+    }
+
+    .box {
+      width: 90%;
+    }
+
+    .crack-button {
+      height: 40px;
+      width: 85px;
+      font-size: 16px;
+    }
+	
+	.message {
+      font-size: 14px;
+    }
+	
+    .square {
+      width: 40px;
+      height: 40px;
+    }
+  }
+
+
+  @media (max-width: 320px) {
+    .box {
+      width: 100%;
+      max-width: none; /* Remove max-width on very small screens */
+    }
+    .square {
+      width: 40px;
+      height: 40px;
+    }
+    .crack-button {
+      height: 40px;
+      width: 80px;
+      font-size: 14px;
+    }
+  }
+
+    .hidden {
+      display: none;
+    }
+
+    .section {
+      padding: 20px;
+      color: white;
+      font-size: 18px;
+      flex-grow: 1;
+    }
+
+    .promo-container {
+      padding: 10px;
+      background-color: #3A0000;
+      border-radius: 10px;
+      display: flex;
+      align-items: center; /* Вертикальное выравнивание */
+      gap: 10px; /* Промежуток между полем ввода и кнопкой */
+      margin-top: 50px;
+    }
+
+    #promo-code {
+      flex-grow: 1; /* Поле ввода занимает оставшееся пространство */
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .info-box {
+      background-color: #3A0000; /* Зеленый фон */
+      padding: 15px;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+      position: relative; /* Для позиционирования кнопки внутри блока */
+      margin-top: 10px;
+    }  
+
+    .info-text {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .info-text p {
+      margin: 0;
+      color: white;
+      font-size: 18px;
+    }
+
+    .join-button {
+      position: absolute;
+      top: 10px;  /* Отступ сверху */
+      right: 10px;  /* Отступ справа */
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .join-button:hover {
+      background-color: #45a049;
+    }
+
+    .info-subtext {
+      color: white;
+      font-size: 14px;
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .reward {
+      position: absolute; /* Абсолютное позиционирование */
+      bottom: 10px; /* Расстояние снизу */
+      right: 10px; /* Расстояние справа */
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .reward-text {
+      font-weight: bold;
+      font-size: 16px;
+      color: white;
+    }  
+
+    .coin-icon {
+      width: 15px;
+      height: 15px;
+    }
+    .wallet-container {
+      padding: 10px;
+      background-color: #3A0000;
+      border-radius: 10px;
+      display: flex;
+      align-items: center; /* Вертикальное выравнивание */
+      gap: 10px; /* Промежуток между полем ввода и кнопкой */
+      margin-top: 50px;
+    }
+
+    #wallet-code {
+      flex-grow: 1; /* Поле ввода занимает оставшееся пространство */
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    .connect-button {
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .disabled-input {
+      background-color: #f0f0f0; /* Light gray background */
+      cursor: not-allowed; /* Indicate that it's not clickable */
+      color: #a0a0a0; /* Light gray text color */
+    }
+
+
+.boosts-section {
+  display: flex;
+  justify-content: space-around; /* Space the columns evenly */
+  gap: 20px;
+  margin-top: 25px;
+}
+
+.column {
+  text-align: center;
+  flex: 1;
+  font-size: 16px;
+  color: yellow;
+}
+
+.rectangle-grid {
+  display: grid;
+  grid-template-columns: 1fr; /* Single column layout inside each section */
+  gap: 10px;
+  flex-grow: 1;
+  margin-top: -15px;
+}
+
+.rectangle {
+  background-color: #3A0000;
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 90px;
+  text-align: center;
+  position: relative; 
+  border: none; /* Remove default button border */
+  cursor: pointer; /* Show pointer cursor */
+  transition: background-color 0.3s ease;
+}
+
+.rectangle:hover {
+  background-color: darkred; /* Darker red on hover */
+}
+
+
+.rectangle img {
+  max-width: 50px;
+  max-height: 50px;
+  margin-top: 25px;
+  
+}
+
+.rectangle p {
+  color: white;
+  font-size: 20px;
+  margin-top: 10px;
+}
+
+.subtext {
+  color: gray;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.top-left-text {
+  position: absolute; /* Positioning the text absolutely */
+  top: 0px; /* Distance from the top */
+  left: 10px; /* Distance from the left */
+  color: gray; /* Text color */
+  font-size: 15px !important;
+  margin: 0; /* Remove default margin */
+}
+
+  </style>
+</head>
+<body>
+ <!-- Общий баннер для всех вкладок -->
+  <div class="banner">
+    <div class="attempts-container">
+	
+	 <div id="attempts-wrapper">
+	
+       <span id="attempts">5 / 5</span>
+       <span id="next-spin-timer"></span>  
+    </div>
+    </div>
+
+    <div class="score-container">
+      <span id="score">0</span>
+      <img src="coin.png" alt="Coin">
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div id="main-content" class="section">
+    <div class="timer" id="timer"></div>
+    <div class="wheel-container">
+      <canvas id="wheel" width="400" height="400"></canvas>
+      <button id="spin" class="spin-btn">Spin</button>
+      <img src="pointer.png" class="pointer" alt="Pointer">
+    </div>
+    <div class="box" id="code-cracker">
+      <div class="squares">
+        <div class="input-area">
+          <div class="square" id="square1" data-symbol="circle"></div>
+          <div class="square" id="square2" data-symbol="circle"></div>
+          <div class="square" id="square3" data-symbol="circle"></div>
+          <button class="crack-button" onclick="checkCode()">Crack</button>
+        </div>
+        <div class="message" id="message">Crack the code to collect 1000 coins</div>
+      </div>
+    </div>
+  </div>
+
+<!-- Task Section -->
+<div id="task-section" class="section hidden">
+  <div class="task-content">
+    <div class="promo-container">
+      <input type="text" id="promo-code" placeholder="Enter your promo code">
+      <button id="apply-button" onclick="applyPromoCode()">Apply</button>
+    </div>
+    <div class="info-box">
+      <div class="info-text">
+        <p>Join our Telegram channel</p>
+       <button class="join-button">Join</button>
+      </div>
+      <p class="info-subtext">There you will find promo codes and code for every day</p>
+      <div class="reward">
+        <span class="reward-text">+1000</span>
+        <img src="coin.png" alt="Coin" class="coin-icon">
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- Store Section -->
+  <div id="store-section" class="section hidden">
+<div class="task-content">
+  <div class="boosts-section">
+    <div class="column">
+      <h3>Regular Boosts</h3>
+      <div class="rectangle-grid">
+        <button class="rectangle" id="boost1">
+          <p class="top-left-text">24h</p>
+          <img src="x2score.png" alt="x2 coins">
+          <p>x2 coins</p>
+        </button>
+        <button class="rectangle" id="boost2">
+          <p class="top-left-text">2m</p>
+          <img src="unlim.png" alt="unlimited spins">
+          <p>unlimited spins</p>
+        </button>
+        <button class="rectangle" id="boost3">
+          <p class="top-left-text">24h</p>
+          <img src="x2att.png" alt="x2 spins">
+          <p>x2 spins</p>
+        </button>
+        <button class="rectangle" id="boost4">
+          <img src="plus2.png" alt="plus 2 spins">
+          <p>+2 spins</p>
+        </button>
+      </div>
+      <p class="subtext">Updated every Monday</p>
+    </div>
+
+    <div class="column">
+      <h3>Rare Boosts</h3>
+      <div class="rectangle-grid">
+        <button class="rectangle" id="boost5">
+          <p class="top-left-text">24h</p>
+          <img src="x5score.png" alt="x5 coins">
+          <p>x5 coins</p>
+        </button>
+        <button class="rectangle" id="boost6">
+          <p class="top-left-text">5m</p>
+          <img src="unlim.png" alt="unlimited spins">
+          <p>unlimited spins</p>
+        </button>
+        <button class="rectangle" id="boost7">
+          <p class="top-left-text">24h</p>
+          <img src="x5att.png" alt="x5 spins">
+          <p>x5 spins</p>
+        </button>
+        <button class="rectangle" id="boost8">
+          <img src="plus5.png" alt="plus 5 spins">
+          <p>+5 spins</p>
+        </button>
+      </div>
+      <p class="subtext">Given from promo codes</p>
+    </div>
+  </div>
+</div>
+</div>
+  
+  </div>
+
+  <!-- Wallet Section -->
+  <div id="wallet-section" class="section hidden">
+    <div class="wallet-container">
+      <input id="wallet-code" type="text" placeholder="Enter your wallet" />
+      <button id="connect-button">Connect</button>
+    </div>
+  </div>
+
+  <!-- Footer with buttons -->
+  <div class="footer-banner">
+    <button class="footer-btn" onclick="showSection('main-content')">WHEEL</button>
+    <button class="footer-btn" onclick="showSection('task-section')">TASK</button>
+    <button class="footer-btn" onclick="showSection('store-section')">STORE</button>
+    <button class="footer-btn" onclick="showSection('wallet-section')">WALLET</button>
+  </div>
+
+
+  <script>
+    const canvas = document.getElementById("wheel");
+    const ctx = canvas.getContext("2d");
+    const spinBtn = document.getElementById("spin");
+    const scoreDisplay = document.getElementById("score");
+    const attemptsDisplay = document.getElementById("attempts");
+    const timerDisplay = document.getElementById("timer");
+	
+	//const scoreTaskDisplay = document.getElementById("score-task");
+    //const scoreWalletDisplay = document.getElementById("score-wallet");
+
+    const sectors = 16;
+    const sectorAngle = 360 / sectors;
+    const radius = canvas.width / 2;
+
+
+    const MAX_SPINS = 5;         // Максимальное количество спинов
+
+
+    let currentAngle = 0;
+    let spinning = false;
+    let score = parseInt(localStorage.getItem('wheelScore')) || 0;
+    //let attempts = parseInt(localStorage.getItem('attempts')) || MAX_SPINS; // Если попытки отсутствуют в localStorage, установить на MAX_SPINS
+	let attempts = parseInt(localStorage.getItem('attempts')) || 0;
+    
+
+    //let attempts = 5;
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Ensure Telegram WebApp is ready before expanding
+  if (window.Telegram && Telegram.WebApp) {
+    Telegram.WebApp.ready();  // Initialize the Web App
+    Telegram.WebApp.expand(); // Expand the Web App
+  }
+  startHourlySpinTimer();
+  initializeApp();
+  checkDailyCodeStatus();
+});
+
+   
+    // Draw the wheel
+    const wheelImage = new Image();
+    wheelImage.src = 'wheel.png';
+    wheelImage.onload = () => {
+      drawWheel();
+    };
+
+    async function initializeApp() {
+   const today = getCurrentDate();
+   let dailyCode = localStorage.getItem('dailyCodeDate') === today ? localStorage.getItem('dailyCode') : null;
+
+   if (!dailyCode) {
+      dailyCode = await fetchDailyCode();
+      if (dailyCode) {
+         localStorage.setItem('dailyCode', dailyCode);
+         localStorage.setItem('dailyCodeDate', today);
+      }
+   }
+   
+if (!localStorage.getItem('attempts')) {
+  attempts = 5; // или другое значение по умолчанию
+  localStorage.setItem('attempts', attempts);
+}
+
+
+   
+   
+       const savedAngle = localStorage.getItem('currentAngle');
+    if (savedAngle) {
+        currentAngle = parseFloat(savedAngle); // Преобразуем в число
+        drawWheel(); // Отображаем колесо на сохраненном угле
+    }
+      
+    // Set the code for the squares
+    const squares = document.querySelectorAll('.square');
+    squares.forEach(square => {
+      square.dataset.symbol = 'circle'; // Default symbol
+      square.style.backgroundImage = 'url(circle.png)'; // Replace with appropriate image path
+    });
+
+     // Save the daily code in localStorage
+     localStorage.setItem('dailyCode', dailyCode);
+
+     // Check if this is the user's first visit
+     if (!localStorage.getItem('firstVisit')) {
+       attempts = 5;
+       localStorage.setItem('attempts', attempts);
+       localStorage.setItem('firstVisit', 'true');
+     //  localStorage.setItem('lastAttemptTime', Date.now());
+    }
+
+     // Restore timer if needed
+	 restoreState();
+     updateDisplays();	  
+	 checkHourlySpinRecovery();
+	 startNextSpinTimer();
+   }
+
+    async function fetchDailyCode() {
+       try {
+          const today = getCurrentDate(); // Получаем текущую дату
+          const response = await fetch(`codes.json?date=${today}`); // Добавляем дату для предотвращения кэширования
+          if (!response.ok) throw new Error('Network response was not ok');
+ 
+          const codes = await response.json();
+          return codes[today]; // Возвращаем код для сегодняшнего дня
+       } catch (error) {
+          console.error('Error fetching daily code:', error);
+          return null;
+       }
+    }
+
+    async function fetchPromoCodes() {
+      try {
+        const response = await fetch('promocodes.json'); // Загружаем промокоды из файла
+        if (!response.ok) {
+          throw new Error('Failed to fetch promocodes');
+        }
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error('Error fetching promocodes:', error);
+        return {};
+      }
+    }
+
+    async function applyPromoCode() {
+      const promoCodeInput = document.getElementById('promo-code').value.trim();
+      const messageElement = document.getElementById('promo-message');
+      const applyButton = document.getElementById('apply-button');
+      const promoCodes = await fetchPromoCodes();
+
+      // Check if this promo code has been used
+      let usedPromoCodes = JSON.parse(localStorage.getItem('usedPromoCodes')) || [];
+
+      if (usedPromoCodes.includes(promoCodeInput)) {
+        // Promo code already used
+        applyButton.style.backgroundColor = 'red'; // Button turns red
+        document.getElementById('promo-code').placeholder = 'Already Used'; // Placeholder text
+        setTimeout(() => {
+          applyButton.style.backgroundColor = ''; // Reset button color
+          document.getElementById('promo-code').placeholder = 'Enter your promo code'; // Reset placeholder
+        }, 2000); // Show message for 2 seconds
+        return;
+      }
+
+      // Check if the entered promo code exists
+      if (promoCodes.hasOwnProperty(promoCodeInput)) {
+        const reward = promoCodes[promoCodeInput];
+
+        // Add coins
+        incrementScore(reward);
+
+        // Message on successful application
+        applyButton.style.backgroundColor = 'green'; // Button turns green
+        document.getElementById('promo-code').placeholder = `Correct! You received ${reward} coins`; // Placeholder text
+        setTimeout(() => {
+          applyButton.style.backgroundColor = ''; // Reset button color
+          document.getElementById('promo-code').placeholder = 'Enter your promo code'; // Reset placeholder
+        }, 2000); // Show message for 2 seconds
+
+        // Clear input field
+        document.getElementById('promo-code').value = '';
+
+        // Save this promo code as used
+        usedPromoCodes.push(promoCodeInput);
+        localStorage.setItem('usedPromoCodes', JSON.stringify(usedPromoCodes));
+      } else {
+        // Promo code is incorrect
+        applyButton.style.backgroundColor = 'red'; // Button turns red
+        document.getElementById('promo-code').placeholder = 'Incorrect'; // Placeholder text
+        setTimeout(() => {
+          applyButton.style.backgroundColor = ''; // Reset button color
+          document.getElementById('promo-code').placeholder = 'Enter your promo code'; // Reset placeholder
+        }, 2000); // Show message for 2 seconds
+      }
+    }
+
+
+
+
+
+
+
+
+function spinWheel() {
+  if (spinning || attempts <= 0) return;
+
+
+  spinning = true;
+  attempts -= 1;
+  localStorage.setItem('attempts', attempts);
+  updateDisplays();
+
+
+  const winningSector = Math.floor(Math.random() * sectors);
+  const spinDuration = 6000;
+  const spins = Math.floor(Math.random() * 8) + 1;
+  const targetAngle = (360 * spins) + (sectorAngle * winningSector) - (sectorAngle / 2);
+  const startTime = Date.now();
+
+  function animate() {
+    const elapsed = Date.now() - startTime;
+    const progress = Math.min(elapsed / spinDuration, 1);
+    const easeOutQuad = 1 - Math.pow(1 - progress, 4);
+
+    currentAngle = targetAngle * easeOutQuad;
+    drawWheel();
+
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    } else {
+      spinning = false;
+      const normalizedAngle = (currentAngle % 360 + 360) % 360;
+      const topSectorAngle = (normalizedAngle + 90) % 360;
+      const winningSectorCalculated = Math.floor(((360 - topSectorAngle) % 360) / sectorAngle) % sectors + 1;
+
+      localStorage.setItem('currentAngle', normalizedAngle);
+      drawWheel(); // Показываем финальный угол
+
+      const points = calculateScore(winningSectorCalculated);
+      incrementScore(points); // Use incrementScore to add points
+    }
+  }
+
+  animate();
+}
+
+function checkHourlySpinRecovery() {
+    const lastSpinCheck = localStorage.getItem('lastSpinCheck');
+    const currentTime = new Date();
+
+    if (lastSpinCheck) {
+        const lastCheckDate = new Date(lastSpinCheck);
+        let hoursPassed = currentTime.getHours() - lastCheckDate.getHours();
+        if (hoursPassed < 0) hoursPassed += 24; // Handle day change
+
+        if (hoursPassed > 0 && attempts < MAX_SPINS) {
+            const spinsToAdd = Math.min(hoursPassed, MAX_SPINS - attempts);
+            attempts += spinsToAdd;
+            localStorage.setItem('attempts', attempts);
+        }
+    }
+
+    localStorage.setItem('lastSpinCheck', currentTime.toString()); // Update the last check time
+}
+
+function startHourlySpinTimer() {
+    const now = new Date();
+    const nextHour = new Date(now);
+    nextHour.setHours(now.getHours() + 1);
+    nextHour.setMinutes(0, 0, 0);
+
+    const timeUntilNextHour = nextHour - now;
+
+    setTimeout(() => {
+        if (attempts < MAX_SPINS) {
+            attempts += 1;
+            localStorage.setItem('attempts', attempts);
+            updateDisplays();
+        }
+        startHourlySpinTimer(); // Set the next hourly check
+    }, timeUntilNextHour);
+}
+
+function startNextSpinTimer() {
+    const now = new Date();
+    const nextHour = new Date(now);
+    nextHour.setHours(now.getHours() + 1);
+    nextHour.setMinutes(0, 0, 0);
+
+    function updateTimer() {
+        const currentTime = new Date();
+        const timeUntilNextSpin = nextHour - currentTime;
+
+        if (timeUntilNextSpin > 0) {
+            const minutes = Math.floor(timeUntilNextSpin / (1000 * 60));
+            const seconds = Math.floor((timeUntilNextSpin % (1000 * 60)) / 1000);
+
+            // Update the timer display
+            const timerDisplay = document.getElementById('next-spin-timer');
+            timerDisplay.textContent = `   ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+        } else {
+            // Add a spin when the next hour starts
+            if (attempts < MAX_SPINS) {
+                attempts += 1;
+                localStorage.setItem('attempts', attempts);
+                updateDisplays();
+            }
+            startNextSpinTimer(); // Restart the timer for the next hour
+        }
+    }
+
+    updateTimer(); // Initial call
+    setInterval(updateTimer, 1000); // Update the timer every second
+}
+
+
+
+
+
+    function drawWheel() {
+      if (!wheelImage.complete || wheelImage.naturalWidth === 0) {
+        console.error("Wheel image failed to load.");
+        return;
+      }
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.save();
+      ctx.translate(radius, radius);
+      ctx.rotate((currentAngle * Math.PI) / 180);
+      ctx.translate(-radius, -radius);
+      ctx.drawImage(wheelImage, 0, 0, canvas.width, canvas.height);
+      ctx.restore();
+    }
+
+    function calculateScore(winningSector) {
+      const scoreMap = {
+        1: 10, 3: 10, 5: 10, 7: 10, 9: 10, 11: 10, 13: 10, 15: 10,
+        14: 100, 2: 100, 10: 100, 6: 100,
+        4: 500, 12: 500,
+        16: 50, 8: 50
+      };
+      return scoreMap[winningSector] || 0;
+    }
+
+    function updateScore(points) {
+      score += points;
+      localStorage.setItem('wheelScore', score);
+      updateDisplays();
+    }
+
+  function updateDisplays() {
+    const scoreDisplay = document.getElementById('score');
+    scoreDisplay.textContent = score; // Update score display
+    const attemptsDisplay = document.getElementById('attempts');
+    attemptsDisplay.textContent = attempts;  // Update the attempts display
+
+    // Show the timer if no spins are available
+   // const timerDisplay = document.getElementById('timer');
+   // if (attempts <= 0) {
+      timerDisplay.style.display = 'block';
+   // } else {
+   //   timerDisplay.style.display = 'none';
+   // }
+  }
+
+
+    function showSection(sectionId) {
+      document.querySelectorAll('.section').forEach(section => {
+        section.classList.add('hidden');
+      });
+      document.getElementById(sectionId).classList.remove('hidden');
+	 loadSpinsFromLocalStorage();
+	 updateDisplay();
+
+    }
+
+    function getCurrentDate() {
+      const today = new Date();
+      return today.toISOString().split('T')[0]; // Формат: "YYYY-MM-DD"
+    } 
+
+    function updateDisplay() {
+      document.getElementById('attempts').textContent = attempts;
+      document.getElementById('score').textContent = score;
+    }
+
+  function checkCode() {
+      const enteredCode = [document.getElementById('square1').dataset.symbol, 
+                           document.getElementById('square2').dataset.symbol, 
+                           document.getElementById('square3').dataset.symbol].join('-');
+
+      const dailyCode = localStorage.getItem('dailyCode');
+      const messageElement = document.getElementById('message');
+      const crackButton = document.querySelector('.crack-button');
+	  
+      if (enteredCode === dailyCode) {
+        crackButton.classList.add('success');
+        disableInput();
+        incrementScore(1000); // Award coins for cracking the code
+        localStorage.setItem('solvedDate', getCurrentDate());
+        updateDisplay();
+      } else {
+        // Change button to red
+        crackButton.classList.add('error');
+        messageElement.textContent = "Incorrect code. Try again!";
+        // Reset button color after 2 seconds
+        setTimeout(() => {
+          crackButton.classList.remove('error');
+          messageElement.textContent = "Crack the code to collect 1000 coins";
+        }, 2000);
+      }
+    }
+
+    function incrementScore(points, callback) {
+          let currentPoints = 0;
+
+      function addPoint() {
+      if (currentPoints < points) {
+           score += 1;
+           currentPoints += 1;
+           localStorage.setItem('wheelScore', score);
+           updateDisplays();
+           setTimeout(addPoint, 10); // Adjust the interval if needed
+          } else {
+          if (callback) callback(); // Execute the callback when done
+          }
+        }
+       addPoint();
+    }
+
+
+
+
+
+    function checkDailyCodeStatus() {
+      const currentCode = localStorage.getItem('dailyCode') || 'circle-triangle-square-star'; // Default code with star included
+      const solvedDate = localStorage.getItem('solvedDate');
+      const currentDate = getCurrentDate();
+
+      // If today's code is already solved, disable input
+      if (solvedDate === currentDate) {
+        disableInput();
+      } else {
+        enableInput(); // Enable squares and button if daily code is not yet solved
+      }
+    }
+
+    function enableInput() {
+      // Enable squares (including the star)
+      const squares = document.querySelectorAll('.square');
+      squares.forEach(square => {
+        square.classList.remove('disabled'); // Remove disabled class to make squares clickable
+      });
+
+      // Enable Crack button
+      const crackButton = document.querySelector('.crack-button');
+      crackButton.disabled = false;
+      crackButton.classList.remove('success'); // Remove success class if it was there
+      document.getElementById('message').textContent = 'Crack the code to collect 1000 coins!'; // Reset message
+    }
+
+    function disableInput() {
+      // Disable squares
+      const squares = document.querySelectorAll('.square');
+      squares.forEach(square => {
+        square.classList.add('disabled'); // Add disabled class to make squares non-clickable
+      });
+
+      // Disable Crack button
+      const crackButton = document.querySelector('.crack-button');
+      crackButton.disabled = true;
+      document.getElementById('message').textContent = 'Correct. You cracked today\'s code!'; // Update message
+    }
+
+
+
+
+
+
+function initializeJoinButton() {
+  const joinButton = document.querySelector('.join-button');
+  const isClaimed = localStorage.getItem('hasClaimedJoinReward');
+
+  // Проверяем, получена ли награда
+  if (isClaimed === 'true') {
+    joinButton.textContent = 'Join';
+    joinButton.style.backgroundColor = 'gray';
+    joinButton.addEventListener('click', redirectToChannel);  // Переход на канал
+  } else {
+    joinButton.textContent = 'Join';
+    joinButton.style.backgroundColor = '#4CAF50';  // Зеленая кнопка
+    joinButton.addEventListener('click', handleJoinClick);  // Обработчик для кнопки "Join"
+  }
+}
+
+function handleJoinClick() {
+  const joinButton = document.querySelector('.join-button');
+
+  // Переход на канал при нажатии на "Join"
+  redirectToChannel();
+
+  // После этого кнопка меняется на "Claim"
+  joinButton.textContent = 'Claim';
+  joinButton.style.backgroundColor = '#28a745';  // Цвет кнопки "Claim"
+  joinButton.removeEventListener('click', handleJoinClick);  // Убираем логику для "Join"
+  joinButton.addEventListener('click', handleClaimClick);  // Добавляем логику для "Claim"
+}
+
+function handleClaimClick() {
+  const joinButton = document.querySelector('.join-button');
+
+  // Начисляем награду при нажатии на "Claim"
+  incrementScore(1000);
+
+  // Обновляем кнопку на серую "Join"
+  joinButton.textContent = 'Join';
+  joinButton.style.backgroundColor = 'gray';  // Кнопка становится серой
+  localStorage.setItem('hasClaimedJoinReward', 'true');  // Сохраняем, что награда получена
+
+  // Убираем обработчик "Claim" и добавляем логику для "Join"
+  joinButton.removeEventListener('click', handleClaimClick);
+  joinButton.addEventListener('click', redirectToChannel);  // Логика для перехода на канал
+}
+
+    function redirectToChannel() {
+      window.open('https://t.me/WheelCoinpublic', '_blank');  // Замените на вашу ссылку на канал Telegram
+    }
+
+
+
+
+
+
+
+    function incrementScore(points, callback) {
+      let currentPoints = 0;
+  
+  function addPoint() {
+    if (currentPoints < points) {
+      score += 1;
+      currentPoints += 1;
+      localStorage.setItem('wheelScore', score); // Update stored score
+      updateDisplays(); // Update the UI
+      setTimeout(addPoint, 10); // Adjust interval to control speed
+    } else {
+      if (callback) callback(); // Callback after increment is done
+    }
+  }
+
+  addPoint();
+}
+
+    function updateDisplays() {
+      const scoreDisplay = document.getElementById('score');
+      scoreDisplay.textContent = score; // Update score display
+      const attemptsDisplay = document.getElementById('attempts');
+      
+     attemptsDisplay.textContent = `${attempts} / ${MAX_SPINS}`;
+	  
+	  
+	  //if (attempts <= 0) {
+        timerDisplay.style.display = 'block';  // Показываем таймер, если спинов нет
+     // } else {
+      //  timerDisplay.style.display = 'none';  // Скрываем таймер, если спины есть
+     // }
+    }
+
+    function setButtonState(state) {
+      const walletInput = document.getElementById('wallet-code');
+      const connectButton = document.getElementById('connect-button');
+
+      if (state === 'Edit') {
+        connectButton.textContent = 'Edit';
+        walletInput.disabled = true;
+        walletInput.classList.add('disabled-input');
+      } else {
+        connectButton.textContent = 'Connect';
+        walletInput.disabled = false;
+        walletInput.classList.remove('disabled-input');
+      }
+    } 
+
+    function restoreState() {
+      const walletInput = document.getElementById('wallet-code');
+      const savedWalletCode = localStorage.getItem('walletCode');
+      const savedButtonState = localStorage.getItem('buttonState');
+
+      // Восстанавливаем значение поля из localStorage
+      if (savedWalletCode) {
+        walletInput.value = savedWalletCode;
+      }
+
+      // Восстанавливаем состояние кнопки
+      setButtonState(savedButtonState || 'Connect');
+    }
+
+    function toggleInputState() {
+            const walletInput = document.getElementById('wallet-code');
+            const connectButton = document.getElementById('connect-button');
+            const currentState = connectButton.textContent === 'Connect' ? 'Edit' : 'Connect';
+
+            setButtonState(currentState);
+            localStorage.setItem('walletCode', walletInput.value);
+            localStorage.setItem('buttonState', currentState);
+
+            if (currentState === 'Edit') {
+                alert(`Wallet connected: ${walletInput.value}`);
+            }
+        }
+
+
+    document.addEventListener('DOMContentLoaded', function() {
+      restoreState();  // Восстанавливаем состояние
+      const connectButton = document.getElementById('connect-button');
+      connectButton.addEventListener('click', toggleInputState);  // Добавляем обработчик события
+    });
+
+      document.querySelectorAll('.square').forEach(square => {
+        square.addEventListener('click', () => {
+          const currentSymbol = square.dataset.symbol;
+          const newSymbol = currentSymbol === 'circle' ? 'triangle' :
+                            (currentSymbol === 'triangle' ? 'square' :
+                            (currentSymbol === 'square' ? 'star' : 'circle'));
+          square.dataset.symbol = newSymbol;
+          // Update the background image to reflect the new symbol
+          square.style.backgroundImage = `url(${newSymbol}.png)`; // Replace with your actual image paths
+        });
+      });
+	
+    document.addEventListener('DOMContentLoaded', initializeJoinButton);
+	
+    document.addEventListener('DOMContentLoaded', checkDailyCodeStatus);
+
+  window.addEventListener('beforeunload', () => {
+    saveLastActiveTime();
+  });
+
+    spinBtn.addEventListener("click", spinWheel);
+    updateDisplay();
+    initializeApp();
+
+	
+	
+  </script>
+</body>
+</html>
+
+
+
