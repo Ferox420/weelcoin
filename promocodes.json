@@ -1,0 +1,12 @@
+{
+  "WINNER2024": 1000,        // Awards 1000 coins
+  "EXTRA500": 500,           // Awards 500 coins
+  "BOOSTX2": "x2",           // Unlocks the x2 coins boost
+  "BOOSTX5": "x5",           // Unlocks the x5 coins boost
+  "UNLIMITED2": "unlimited2", // Unlocks unlimited spins for 2 minutes
+  "UNLIMITED5": "unlimited5", // Unlocks unlimited spins for 5 minutes
+  "X2SPINS": "x2spins",      // Unlocks x2 hourly spins for 24 hours
+  "X5SPINS": "x5spins",      // Unlocks x5 hourly spins for 24 hours
+  "PLUS2SPINS": "plus2",     // Adds 2 spins
+  "PLUS5SPINS": "plus5"      // Adds 5 spins
+}
