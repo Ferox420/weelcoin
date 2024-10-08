@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invite Friends - Telegram WebApp</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.Telegram && window.Telegram.WebApp) {
+                Telegram.WebApp.ready();  // Initialize the WebApp
+
+                // Check if the user has a username
+                const user = Telegram.WebApp.initDataUnsafe.user;
+                if (user && user.username) {
+                    console.log(`User authenticated: ${user.first_name} ${user.last_name} (@${user.username})`);
+                    
+                    // Check if Contact Picker is available
+                    if (Telegram.WebApp.showContactPicker) {
+                        document.getElementById('invite-btn').addEventListener('click', () => {
+                            Telegram.WebApp.showContactPicker({
+                                multiple: true,  // Allow selecting multiple friends
+                                onSelect: function (contacts) {
+                                    if (contacts.length > 0) {
+                                        contacts.forEach(contact => {
+                                            console.log(`Invited: ${contact.first_name} ${contact.last_name}`);
+                                        });
+                                    } else {
+                                        console.log('No contacts selected.');
+                                    }
+                                }
+                            });
+                        });
+                    } else {
+                        console.log("Contact Picker is not available.");
+                        alert("Contact Picker is not available on this platform.");
+                    }
+                } else {
+                    // Handle the case where the user doesn't have a username
+                    console.log("User does not have a username.");
+                    alert("You need to set a Telegram username to invite friends.");
+                }
+            } else {
+                console.log("Telegram WebApp is not initialized.");
+                alert("Telegram WebApp is not initialized.");
+            }
+        });
+    </script>
+</head>
+<body>
+    <h1>Invite Friends</h1>
+    <button id="invite-btn">Invite Friends</button>
+</body>
+</html>
