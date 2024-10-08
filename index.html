@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Telegram WebApp</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.Telegram && window.Telegram.WebApp) {
+                Telegram.WebApp.ready(); // Ensure the WebApp is initialized
+                alert("Telegram WebApp initialized!");
+
+                // Set up the invite button
+                document.getElementById('invite-btn').addEventListener('click', function () {
+                    if (Telegram.WebApp.showContactPicker) {
+                        Telegram.WebApp.showContactPicker({
+                            multiple: true,  // Allow selecting multiple friends
+                            onSelect: function (contacts) {
+                                if (contacts.length > 0) {
+                                    contacts.forEach(contact => {
+                                        alert(`Inviting: ${contact.first_name} ${contact.last_name}`);
+                                    });
+                                } else {
+                                    alert('No contacts selected.');
+                                }
+                            }
+                        });
+                    } else {
+                        alert("Contact Picker is not available.");
+                    }
+                });
+            } else {
+                alert("Telegram WebApp is not initialized.");
+            }
+        });
+    </script>
+</head>
+<body>
+    <h1>Welcome to the WebApp!</h1>
+    <button id="invite-btn">Invite Friends</button>
+</body>
+</html>
